@@ -13,7 +13,7 @@
 ## Installation 
 
 ```
-composer install rxthunder/eventstore
+composer require rxthunder/eventstore
 ```
 
 ## Setup
@@ -48,7 +48,7 @@ $consoleDefinition->setPublic(true);
 $consoleDefinition->setAutowired(true);
 $consoleDefinition->setAutoconfigured(true);
 
-$this->registerClasses($definition, 'RxThunder\\eventstore\\Console\\', '../vendor/rxthunder/eventstore/src/Console/*');
+$this->registerClasses($consoleDefinition, 'RxThunder\\eventstore\\Console\\', '../vendor/rxthunder/eventstore/src/Console/*');
 ```
 
 Or if you prefer you can include
