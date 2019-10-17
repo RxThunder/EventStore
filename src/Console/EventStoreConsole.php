@@ -92,6 +92,15 @@ final class EventStoreConsole extends AbstractConsole implements LoggerAwareInte
         $reconnect = function (\Exception $e) use ($connection, $dsn) {
             if ($e instanceof NotMasterException) {
                 $credentials = parse_url($dsn);
+
+                if (
+                    !\is_array($credentials) ||
+                    !\array_key_exists('user', $credentials) ||
+                    !\array_key_exists('pass', $credentials)
+                ) {
+                    throw new \LogicException("Can't extract user and password from DSN");
+                }
+
                 $dsn = $credentials['user'].':'.$credentials['pass'].'@'.$e->getMasterIp().':'.$e->getMasterPort();
 
                 return $connection($dsn);
