@@ -1,11 +1,16 @@
 <?php
 
-// Register RabbitMQ consoles
-use Symfony\Component\DependencyInjection\Definition;
+use RxThunder\EventStore\Console\EventStoreConsole;
+use RxThunder\EventStore\Console\EventStoreSetupConsole;
 
-$consoleDefinition = new Definition();
-$consoleDefinition->setPublic(true);
-$consoleDefinition->setAutowired(true);
-$consoleDefinition->setAutoconfigured(true);
+$container->register(EventStoreConsole::class)
+    ->setPublic(true)
+    ->setAutowired(true)
+    ->setAutoconfigured(true)
+;
 
-$this->registerClasses($consoleDefinition, 'RxThunder\\EventStore\\Console\\', __DIR__ . '/../src/Console/*');
+$container->register(EventStoreSetupConsole::class)
+    ->setPublic(true)
+    ->setAutowired(true)
+    ->setAutoconfigured(true)
+;

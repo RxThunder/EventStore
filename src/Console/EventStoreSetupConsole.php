@@ -9,8 +9,9 @@
 
 namespace RxThunder\EventStore\Console;
 
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Psr7\Request;
+use Http\Message\RequestFactory;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
 use RxThunder\Core\Console\AbstractConsole;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Finder\Finder;
@@ -32,13 +33,27 @@ final class EventStoreSetupConsole extends AbstractConsole
     protected $path;
 
     /**
+     * @var RequestFactory
+     */
+    private $request_factory;
+
+    /**
+     * @var ClientInterface
+     */
+    private $client;
+
+    /**
      * @var ParameterBagInterface
      */
     private $parameterBag;
 
     public function __construct(
+        RequestFactory $request_factory,
+        ClientInterface $client,
         ParameterBagInterface $parameterBag
     ) {
+        $this->request_factory = $request_factory;
+        $this->client = $client;
         $this->parameterBag = $parameterBag;
     }
 
@@ -51,8 +66,6 @@ final class EventStoreSetupConsole extends AbstractConsole
 
     private function createContinuousProjections()
     {
-        $client = new \GuzzleHttp\Client();
-
         $finder = new Finder();
         $finder->files()->in(
             sprintf(
@@ -63,7 +76,7 @@ final class EventStoreSetupConsole extends AbstractConsole
         );
 
         foreach ($finder as $file) {
-            $request = new Request(
+            $request = $this->request_factory->createRequest(
                 'POST',
                 sprintf(
                     '%s/projections/continuous?name=%s&type=%s&enabled=%s&emit=%s&trackemittedstreams=%s',
@@ -81,8 +94,8 @@ final class EventStoreSetupConsole extends AbstractConsole
             );
 
             try {
-                $client->send($request);
-            } catch (GuzzleException $e) {
+                $this->client->sendRequest($request);
+            } catch (ClientExceptionInterface $e) {
                 switch ($e->getCode()) {
                 case 409:
                     break;
@@ -95,8 +108,6 @@ final class EventStoreSetupConsole extends AbstractConsole
 
     private function createPersistentSubscriptions()
     {
-        $client = new \GuzzleHttp\Client();
-
         $path = sprintf(
             '%s%s/persistentSubscriptions.json',
             $this->parameterBag->get('thunder.project_dir'),
@@ -119,7 +130,7 @@ final class EventStoreSetupConsole extends AbstractConsole
                     return;
                 }
 
-                $request = new Request(
+                $request = $this->request_factory->createRequest(
                     'PUT',
                     sprintf(
                         '%s/subscriptions/%s/%s',
@@ -134,8 +145,8 @@ final class EventStoreSetupConsole extends AbstractConsole
                 );
 
                 try {
-                    $client->send($request);
-                } catch (GuzzleException $e) {
+                    $this->client->sendRequest($request);
+                } catch (ClientExceptionInterface $e) {
                     switch ($e->getCode()) {
                         case 409:
                             break;
